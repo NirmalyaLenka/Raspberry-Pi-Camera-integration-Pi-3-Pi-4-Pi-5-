@@ -141,6 +141,26 @@ This project is licensed under the MIT License. See the `LICENSE` file for detai
 
 ---
 
+## Skills & technologies
+
+`Python`
+
+
+## Repository structure
+
+Key files and folders (not exhaustive):
+
+- `README.md`
+- `camera-troubleshooting.md`
+- `capture_photo.py`
+- `record_video.py`
+
+
+## How it works
+
+Python source is present, including `capture_photo.py`. Review configuration and dependencies before running; use a virtual environment and follow the project's setup instructions.
+
+
 ## Maintenance & Audit
 
 - **Audit date:** 10 November 2026
