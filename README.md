@@ -1,170 +1,113 @@
-# Raspberry Pi Camera Guide (Pi 3, Pi 4, Pi 5)
+# Raspberry Pi Camera Setup: Pi 3, Pi 4, and Pi 5
 
-A beginner-friendly guide to setting up and using a camera module with the Raspberry Pi 3, Raspberry Pi 4, and Raspberry Pi 5. This covers hardware differences between the boards, wiring the camera correctly, enabling it in software, and running your first photo and video capture scripts.
+This repository documents the CSI camera connector differences between Raspberry Pi 3, Pi 4, and Pi 5, plus two small Python examples using Picamera2. The examples are standalone scripts in the repository root.
 
-## Board Specifications Relevant to the Camera
+For current camera software documentation, see the [official Raspberry Pi camera documentation](https://www.raspberrypi.com/documentation/accessories/camera-software.html) and the [Picamera2 manual](https://datasheets.raspberrypi.com/camera/picamera2-manual.pdf).
 
-The camera connector and the software stack behind it changed across these three boards, so it helps to know the differences before you start.
+## Board and cable differences
 
-### Raspberry Pi 3 Model B / B+
+| Board | Camera connector | Practical note |
+|---|---|---|
+| Raspberry Pi 3 Model B/B+ | 15-pin CSI connector | Use a compatible camera ribbon cable and confirm its orientation for the board and module. |
+| Raspberry Pi 4 Model B | 15-pin CSI connector | The connector size is compatible with the common Pi 3 cable format. |
+| Raspberry Pi 5 | Smaller-pitch camera/display connectors | Use the correct Pi 5-compatible cable or adapter; a Pi 3/Pi 4 ribbon cable does not fit directly. |
 
-| Spec | Detail |
-|---|---|
-| SoC | Broadcom BCM2837B0 |
-| CPU | Quad-core Arm Cortex-A53, 64-bit, 1.4 GHz |
-| RAM | 1 GB LPDDR2 |
-| Camera connector | Single 15-pin CSI camera port (standard size, same as Pi 1/2) |
-| Display connector | Single DSI display port |
-| USB | 4x USB 2.0 |
-| Wireless | 2.4 GHz and 5 GHz 802.11ac, Bluetooth 4.2 |
-| Power | 5V via micro-USB |
-| Camera software stack | Works with the modern `libcamera`/`picamera2` stack on current Raspberry Pi OS; the older `raspistill`/`raspivid` tools are deprecated but may still exist on older OS images |
+The exact camera module, cable, Raspberry Pi OS release, and board revision affect compatibility. Power off the Pi before connecting or reseating the ribbon cable. Do not force the connector or guess the contact orientation; check the markings and the documentation for your board and camera module.
 
-### Raspberry Pi 4 Model B
+## Requirements
 
-| Spec | Detail |
-|---|---|
-| SoC | Broadcom BCM2711 |
-| CPU | Quad-core Arm Cortex-A72, 64-bit, 1.5 GHz (1.8 GHz on later revisions) |
-| RAM | 1 / 2 / 4 / 8 GB LPDDR4 |
-| Camera connector | Single 15-pin CSI camera port (standard size, same as Pi 3) |
-| Display connector | Single DSI display port |
-| USB | 2x USB 3.0, 2x USB 2.0 |
-| Wireless | 2.4 GHz and 5 GHz 802.11ac, Bluetooth 5.0 |
-| Power | 5V via USB-C |
-| Camera software stack | `libcamera`/`picamera2`, the current default and recommended stack |
+- Raspberry Pi 3, 4, or 5 running a supported Raspberry Pi OS release
+- Compatible CSI camera module and the correct ribbon cable
+- Network access for updates and package installation
+- Terminal access locally or over SSH
 
-### Raspberry Pi 5
+Update the OS and reboot before debugging camera detection:
 
-| Spec | Detail |
-|---|---|
-| SoC | Broadcom BCM2712 |
-| CPU | Quad-core Arm Cortex-A76, 64-bit, 2.4 GHz |
-| RAM | 2 / 4 / 8 / 16 GB LPDDR4X |
-| GPU | VideoCore VII, with a redesigned image signal processor for improved camera performance |
-| Camera connector | Two 4-lane MIPI camera/display connectors (smaller pitch than Pi 3/Pi 4 connectors), each usable as a camera or a display port, in any combination, supporting up to two cameras at once |
-| USB | 2x USB 3.0, 2x USB 2.0 |
-| Wireless | 2.4 GHz and 5 GHz 802.11ac, Bluetooth 5.0 |
-| Power | 5V via USB-C, official 27W (5V 5A) supply recommended |
-| Camera software stack | `libcamera`/`picamera2` only, this is the only supported stack |
-
-Important cabling note: the Raspberry Pi 5 uses a different, smaller CSI connector than the Pi 3 and Pi 4. A camera ribbon cable made for Pi 3/Pi 4 will not directly fit a Pi 5. You need either a camera module that ships with the correct cable, or a separate adapter cable rated for the Pi 5's connector.
-
-## What You Will Need
-
-- A Raspberry Pi 3, 4, or 5 with Raspberry Pi OS installed and updated
-- An official Raspberry Pi Camera Module (v1, v2, v3, or HQ Camera), or a compatible third-party CSI camera
-- The correct CSI ribbon cable for your specific board (see the cabling note above)
-- A monitor and keyboard, or an SSH connection to the Pi
-
-## Step 1: Connect the Camera
-
-1. Power off the Pi completely before connecting the camera.
-2. Locate the CSI camera port. On Pi 3 and Pi 4 it is a single wide connector. On Pi 5 it is one of the two smaller connectors near the USB ports.
-3. Gently pull up the plastic clip on the connector.
-4. Insert the ribbon cable with the metal contacts facing the correct direction (usually facing the HDMI port on Pi 3/4, check your specific board's markings on Pi 5).
-5. Push the plastic clip back down to lock the cable in place.
-6. Power the Pi back on.
-
-## Step 2: Update the System First
-
-Camera support has changed significantly across Raspberry Pi OS versions, so update everything before testing:
-
-```
+```bash
 sudo apt update
 sudo apt full-upgrade
 sudo reboot
 ```
 
-## Step 3: Enable and Test the Camera
+## Detect and test the camera
 
-On current Raspberry Pi OS releases (Bullseye and later), the camera is generally detected automatically and uses the `libcamera` stack, with no manual enabling step required in most cases. If you are using an older OS image, you may still need to enable the legacy camera interface through:
+On Raspberry Pi OS Bookworm and later, the command-line camera applications use the `rpicam-*` names. Older OS releases may expose the earlier `libcamera-*` names.
 
-```
-sudo raspi-config
-```
+List detected cameras:
 
-Under **Interface Options**, enable the camera if the option is present, then reboot.
-
-To test that the camera is detected, run:
-
-```
-libcamera-hello --list-cameras
+```bash
+rpicam-hello --list-cameras
 ```
 
-If your camera is recognized, you will see its name and supported resolutions listed.
+Capture a still image:
 
-## Step 4: Take a Test Photo
-
-```
-libcamera-still -o test.jpg
+```bash
+rpicam-still --output test.jpg
 ```
 
-This opens a short preview, then saves a photo named `test.jpg` in your current folder.
+Record a 10-second H.264 video:
 
-## Step 5: Record a Test Video
-
-```
-libcamera-vid -t 10000 -o test.h264
+```bash
+rpicam-vid -t 10000 -o test.h264
 ```
 
-This records a 10 second video (`-t` is in milliseconds) and saves it as `test.h264`.
+These commands use the installed Raspberry Pi camera stack. If the camera is not listed, power down and check the cable, connector, module compatibility, OS update status, and the troubleshooting guide before changing configuration.
 
-## Step 6: Using the Camera with Python (Picamera2)
+## Run the Python examples
 
-Picamera2 is the current official Python library for controlling the camera, and it works across Pi 3, Pi 4, and Pi 5.
+The repository contains these scripts at the root; there is no `examples/` directory.
 
-Install it if it is not already present:
+### Install Picamera2
 
-```
+Recent Raspberry Pi OS images may already include Picamera2. If it is missing, install the OS package:
+
+```bash
 sudo apt install -y python3-picamera2
 ```
 
-See `examples/capture_photo.py` and `examples/record_video.py` in this repository for ready-to-run scripts.
+Use the OS package rather than installing Picamera2 with `pip`, so it remains compatible with the system camera libraries. On a Lite installation, the official documentation also describes a no-recommends install option.
 
-## Common Beginner Mistakes
+### Capture a photo
 
-- Connecting the ribbon cable backwards, or with contacts facing the wrong way
-- Using a Pi 3/Pi 4 camera cable directly on a Pi 5 without an adapter
-- Not fully seating the ribbon cable, causing a "camera not detected" error
-- Forgetting to update the OS before testing, since older software may not detect newer camera modules correctly
-- Touching the exposed ribbon cable contacts, which can introduce static damage
+From the repository root:
+
+```bash
+python3 capture_photo.py
+```
+
+The script starts Picamera2, waits two seconds for exposure/white-balance adjustment, saves `photo.jpg` in the current directory, and stops the camera.
+
+### Record a video
+
+```bash
+python3 record_video.py
+```
+
+The script records for 10 seconds with an H.264 encoder configured at 10,000,000 bits per second and writes `video.h264` in the current directory. Ensure enough free storage is available before recording.
+
+These scripts are minimal examples, not a camera service or production recording application. They have not been run as part of this documentation review.
+
+## Repository contents
+
+| Path | Purpose |
+|---|---|
+| `README.md` | Board differences, setup, command-line checks, and Python instructions |
+| `capture_photo.py` | Picamera2 still capture to `photo.jpg` |
+| `record_video.py` | Picamera2 H.264 recording to `video.h264` |
+| `camera-troubleshooting.md` | Camera detection and common error checks |
+
+The current root tree does not contain a `LICENSE` file, a `requirements.txt`, or an `examples/` directory. Licensing terms are therefore not established by the current root files.
 
 ## Troubleshooting
 
-See `docs/camera-troubleshooting.md` for a list of common camera-specific errors and fixes.
+See [camera-troubleshooting.md](camera-troubleshooting.md). Start by running `rpicam-hello --list-cameras` on a current Raspberry Pi OS release. If no camera is listed, solve detection and cabling first; Python script changes will not fix a camera that the system cannot see.
 
-## License
+## Verification status
 
-This project is licensed under the MIT License. See the `LICENSE` file for details.-integration-Pi-3-Pi-4-Pi-5-
-
-
----
-
-## Skills & technologies
-
-`Python`
-
-
-## Repository structure
-
-Key files and folders (not exhaustive):
-
-- `README.md`
-- `camera-troubleshooting.md`
-- `capture_photo.py`
-- `record_video.py`
-
-
-## How it works
-
-Python source is present, including `capture_photo.py`. Review configuration and dependencies before running; use a virtual environment and follow the project's setup instructions.
-
+The README, both Python scripts, and the troubleshooting document were inspected. No camera was connected, no command-line capture was run, and neither Python script was executed or tested on a Raspberry Pi.
 
 ## Maintenance & Audit
 
 - **Audit date:** 11 November 2026
-- **Documentation status:** README reviewed and audit record added on this date.
-- **Scope and evidence:** This is a documentation-level maintenance pass. It does not establish that source code compiles, dependencies are current, security has been tested, or hardware/runtime behavior has been verified.
-- **Code and tests:** No new functional code changes or test results are claimed by this README update. Run project-specific build, test, and hardware/runtime checks before relying on the project.
-- **Maintenance baseline:** Documentation status recorded through 11 November 2026; revisit setup instructions, dependencies, known limitations, and tests when the project changes.
+- **Documentation status:** README aligned with the actual root-level scripts and current Raspberry Pi camera command names.
+- **Verification boundary:** Documentation review only; no hardware or runtime result is claimed.
