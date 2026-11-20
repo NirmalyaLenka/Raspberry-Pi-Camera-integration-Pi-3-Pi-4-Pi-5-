@@ -8,7 +8,7 @@ Common camera-specific problems and how to fix them, across Pi 3, Pi 4, and Pi 5
 - Check the cable orientation. The metal contacts usually need to face toward the HDMI port on Pi 3/Pi 4 boards, though this can vary by camera module, so check your specific module's documentation.
 - Confirm you are using the correct cable for your board. Pi 5 uses a different, smaller connector than Pi 3 and Pi 4, and needs its own cable or adapter.
 - Run `sudo apt update && sudo apt full-upgrade` and reboot, since camera detection has improved across OS updates.
-- Run `libcamera-hello --list-cameras` again after rebooting.
+- Run `rpicam-hello --list-cameras` again after rebooting.
 
 ## Green or Purple Tinted Image
 
@@ -37,9 +37,9 @@ sudo apt install -y python3-picamera2
 
 ## Old Tutorials Reference `raspistill` or `raspivid` and Nothing Works
 
-- These tools belonged to the older legacy camera stack and have been replaced by `libcamera-still`, `libcamera-vid`, and the `picamera2` Python library on current Raspberry Pi OS releases.
-- If you are following an older tutorial, look for the equivalent `libcamera-*` command instead.
+- These tools belonged to the older legacy camera stack. On Raspberry Pi OS Bookworm and later, use the `rpicam-still` and `rpicam-vid` command names with the current camera stack; older OS releases may expose `libcamera-*` command names.
+- If you are following an older tutorial, check which Raspberry Pi OS release it targets and use the matching command names.
 
 ## Still Stuck
 
-Run `libcamera-hello --list-cameras` first to confirm the Pi can see the camera at all before troubleshooting further, since most issues trace back to detection rather than software configuration.
+Run `rpicam-hello --list-cameras` first to confirm the Pi can see the camera at all before troubleshooting further, since most issues trace back to detection rather than software configuration.
