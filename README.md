@@ -111,3 +111,9 @@ The README, both Python scripts, and the troubleshooting document were inspected
 - **Audit date:** 20 November 2026
 - **Documentation status:** README aligned with the actual root-level scripts and current Raspberry Pi camera command names.
 - **Verification boundary:** Documentation review only; no hardware or runtime result is claimed.
+
+## Contact
+
+Maintained up to 25 November 2026.
+
+If you encounter any problems, please contact [carmodbhai@gmail.com](mailto:carmodbhai@gmail.com).
